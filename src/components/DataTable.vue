@@ -16,6 +16,9 @@
                 </v-btn>
               </template>
               <v-card>
+                <v-progress-linear v-if="modifyLoading" color="deep-purple accent-4" absolute indeterminate rounded
+                  height="10">
+                </v-progress-linear>
                 <v-card-title>
                   <span class="text-h5">{{ formTitle }}</span>
                 </v-card-title>
@@ -24,23 +27,26 @@
                   <v-container>
                     <v-row>
                       <v-col cols="12" sm="6" md="6">
-                        <v-text-field v-model="editedItem.name" label="Package Name"></v-text-field>
+                        <v-text-field v-model="editedItem.package_name" label="Package Name"></v-text-field>
                       </v-col>
                       <v-col cols="12" sm="6" md="6">
-                        <v-text-field v-model="editedItem.date" type="date" label="Shipping date"></v-text-field>
-                      </v-col>
-                      <v-col cols="12" sm="6" md="6">
-                        <v-text-field v-model="editedItem.arrival" type="date" label="Estimated shipping date">
+                        <v-text-field v-model="editedItem.shipping_date" type="date" label="Shipping date">
                         </v-text-field>
                       </v-col>
                       <v-col cols="12" sm="6" md="6">
-                        <v-text-field v-model="editedItem.to" label="Country of origin"></v-text-field>
+                        <v-text-field v-model="editedItem.arrival_date" type="date" label="Arrival date">
+                        </v-text-field>
                       </v-col>
                       <v-col cols="12" sm="6" md="6">
-                        <v-text-field v-model="editedItem.from" label="Destination country"></v-text-field>
+                        <v-text-field v-model="editedItem.destination_country" label="Country of origin">
+                        </v-text-field>
                       </v-col>
                       <v-col cols="12" sm="6" md="6">
-                        <v-select :items="status" v-model="editedItem.status" label="Stasus"></v-select>
+                        <v-text-field v-model="editedItem.country_of_origin" label="Destination country">
+                        </v-text-field>
+                      </v-col>
+                      <v-col cols="12" sm="6" md="6">
+                        <v-select :items="status" v-model="editedItem.status" label="Status"></v-select>
                       </v-col>
                     </v-row>
                   </v-container>
@@ -59,6 +65,9 @@
             </v-dialog>
             <v-dialog v-model="dialogDelete" max-width="500px">
               <v-card>
+                <v-progress-linear v-if="modifyLoading" color="deep-purple accent-4" absolute indeterminate rounded
+                  height="10">
+                </v-progress-linear>
                 <v-card-title class="text-h5">Are you sure you want to delete this item?</v-card-title>
                 <v-card-actions>
                   <v-spacer></v-spacer>
@@ -90,6 +99,7 @@
 </template>
 
 <script>
+import { mapMutations } from "vuex";
   export default {
   data() {
     return {
@@ -97,39 +107,40 @@
       search: '',
       dialog: false,
       dialogDelete: false,
+      modifyLoading: false,
       
       headers: [
         {
           text: 'Package name',
           align: 'start',
-          value: 'name',
+          value: 'package_name',
         },
-        { text: 'Shipping Date', value: 'date' },
-        { text: 'Estimated arrival date', value: 'arrival' },
-        { text: 'Country of origin', value: 'from' },
-        { text: 'Destination country', value: 'to' },
+        { text: 'Shipping Date', value: 'shipping_date' },
+        { text: 'Estimated arrival date', value: 'arrival_date' },
+        { text: 'Country of origin', value: 'country_of_origin' },
+        { text: 'Destination country', value: 'destination_country' },
         { text: 'Status', value: 'status' },
         { text: 'Actions', value: 'actions', sortable: false }
       ],
       shipments: [],
       editedIndex: -1,
       editedItem: {
-        name: 'Frozen Yogurt',
-        date: '01/01/2021',
-        arrival: '02/05/2022',
-        from: 'Spain',
-        to: 'Uganda',
+        package_name: 'Frozen Yogurt',
+        shipping_date: '01/01/2021',
+        arrival_date: '02/05/2022',
+        country_of_origin: 'Spain',
+        destination_country: 'Uganda',
         status: 'pending',
       },
       defaultItem: {
-        name: '',
-        date: '',
-        arrival: '',
-        from: '',
-        to: '',
-        status: 'pending',
+        package_name: '',
+        shipping_date: '',
+        arrival_date: '',
+        country_of_origin: '',
+        destination_country: '',
+        status: '',
       },
-      status: ['pending', 'arrived', 'on road']
+      status: ['PD', 'AD', 'OTW']
     }
   },
   computed: {
@@ -147,72 +158,26 @@
     },
   },
 
-  created() {
+  async created() {
     this.loading = true;
-    setInterval(() => this.initialize(), 1200)
+    try {
+      const { data } = await this.axios.get('/api/v1/shipments/');
+      this.shipments = data
+    }
+    catch (error) {
+      this.shipments = []
+      let message = Object.values(error.response.data).join(" ").toString()
+      this.SET_SNACK_BAR({ message, showSnackbar: true, color: 'red' })
+    }
+    finally {
+      this.loading = false;
+    }
+
   },
   methods: {
-    initialize() {
-      this.shipments = [
-        {
-          name: 'Yogurt',
-          date: '01/01/2021',
-          arrival: '02/05/2022',
-          from: 'Moroco',
-          to: 'Kenya',
-          status: 'pending',
-        },
-        {
-          name: 'Samsungs',
-          date: '01/01/2021',
-          arrival: '02/05/2022',
-          from: 'Spain',
-          to: 'Turkey',
-          status: 'failed',
-        },
-        {
-          name: 'Frozen Yogurt',
-          date: '01/01/2021',
-          arrival: '02/05/2022',
-          from: 'Spain',
-          to: 'Uganda',
-          status: 'arrived',
-        },
-        {
-          name: 'Tesla',
-          date: '01/01/2021',
-          arrival: '02/05/2022',
-          from: 'China',
-          to: 'USA',
-          status: 'arrived',
-        },
-        {
-          name: 'Mazda',
-          date: '01/01/2021',
-          arrival: '02/05/2022',
-          from: 'Spain',
-          to: 'Uganda',
-          status: 'pending',
-        },
-        {
-          name: 'Milk',
-          date: '01/01/2021',
-          arrival: '02/05/2022',
-          from: 'UK',
-          to: 'Uganda',
-          status: 'on way',
-        },
-        {
-          name: 'Frozen Yogurt',
-          date: '01/01/2021',
-          arrival: '02/05/2022',
-          from: 'South Africa',
-          to: 'Uganda',
-          status: 'pending'
-        }
-      ]
-      this.loading = false;
-    },
+    ...mapMutations({
+      SET_SNACK_BAR: "auth/SET_SNACK_BAR "
+    }),
 
     editItem(item) {
       this.editedIndex = this.shipments.indexOf(item)
@@ -226,8 +191,21 @@
       this.dialogDelete = true
     },
 
-    deleteItemConfirm() {
-      this.shipments.splice(this.editedIndex, 1)
+    async deleteItemConfirm() {
+      const item = this.shipments[this.editedIndex]
+      this.modifyLoading = true;
+      try {
+        const { data } = await this.axios.delete(`/api/v1/shipments/${item.uuid}/`);
+        console.log(data)
+        this.shipments.splice(this.editedIndex, 1)
+      }
+      catch (error) {
+        let message = Object.values(error.response.data).join(" ").toString()
+        this.SET_SNACK_BAR({ message, showSnackbar: true, color: 'red' })
+      }
+      finally {
+        this.modifyLoading = false;
+      }
       this.closeDelete()
     },
 
@@ -246,19 +224,44 @@
         this.editedIndex = -1
       })
     },
-
-    save() {
+    async save() {
       if (this.editedIndex > -1) {
-        Object.assign(this.shipments[this.editedIndex], this.editedItem)
+        //edit shipment
+        const payload = { ...this.editedItem }
+        this.modifyLoading = true;
+        try {
+          const { data } = await this.axios.patch(`/api/v1/shipments/${payload.uuid}/`, payload);
+          Object.assign(this.shipments[this.editedIndex], data)
+        }
+        catch (error) {
+          let message = Object.values(error.response.data).join(" ").toString()
+          this.SET_SNACK_BAR({ message, showSnackbar: true, color: 'red' })
+        }
+        finally {
+          this.modifyLoading = false;
+        }
       } else {
-        this.shipments.push(this.editedItem)
+        //create
+        const payload = { ...this.editedItem }
+        this.modifyLoading = true;
+        try {
+          const { data } = await this.axios.post('/api/v1/shipments/', payload);
+          this.shipments.push(data)
+        }
+        catch (error) {
+          let message = Object.values(error.response.data).join(" ").toString()
+          this.SET_SNACK_BAR({ message, showSnackbar: true, color: 'red' })
+        }
+        finally {
+          this.modifyLoading = false;
+        }
       }
       this.close()
     },
     getColor(status) {
-      if (status == 'prending') return 'blue'
-      else if (status == 'arrived') return 'green'
-      else if (status == 'failed') return 'red'
+      if (status == 'PD') return 'blue'
+      else if (status == 'AD') return 'green'
+      else if (status == 'OTW') return 'red'
       else return 'orange'
     },
   },

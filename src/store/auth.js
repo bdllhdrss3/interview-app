@@ -8,6 +8,8 @@ export const SET_AUTH_LOADING = "SET_AUTH_LOADING"
 export const GET_AUTH_LOADING = 'GET_AUTH_LOADING'
 export const SET_USER_PROFILE = "SET_USER_PROFILE"
 export const SET_AUTH_DIALOG = "SET_AUTH_DIALOG"
+export const SET_SNACK_BAR = "SET_SNACK_BAR "
+export const GET_SNACK_BAR = "GET_SNACK_BAR"
 
 export default {
     namespaced: true,
@@ -16,9 +18,16 @@ export default {
         currentUser: {},
         loading: false,
         profile: {},
-        authDialog: false
+        authDialog: false,
+        message: '',
+        showSnackbar: false,
+        color: ''
+        
     },
-    getters: {
+  getters: {
+          [GET_SNACK_BAR](state) {
+            return {message: state.message,showSnackbar: state.showSnackbar,color:state.color}
+          },
           [GET_USER](state) {
             return state.currentUser
           },
@@ -35,7 +44,8 @@ export default {
             return state.authDialog
           }
     },
-    mutations: {
+  mutations: {
+      
           [SET_AUTH_LOGOUT](state) {
             state.isAuthenticated = false
             state.loading = false
@@ -45,6 +55,11 @@ export default {
           [SET_AUTH_SUCCESS](state, user) {
             state.isAuthenticated = true
             state.currentUser = user
+          },
+          [SET_SNACK_BAR](state, data) {
+            state.message = data.message
+            state.showSnackbar = data.showSnackbar
+            state.color = data.color
           },
           [SET_AUTH_LOADING](state, loading) {
             state.loading = loading
