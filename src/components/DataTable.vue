@@ -4,7 +4,10 @@
       <v-card-title>
         Shipments
         <v-spacer></v-spacer>
-        <v-text-field v-model="search" append-icon="mdi-magnify" label="Search" single-line hide-details></v-text-field>
+        <v-spacer></v-spacer>
+        <v-spacer></v-spacer>
+        <v-spacer></v-spacer>
+        <v-text-field v-model="search" append-icon="mdi-magnify" label="Search" width="100" single-line></v-text-field>
       </v-card-title>
       <v-data-table :headers="headers" :items="shipments" :search="search" :loading="loading">
         <template v-slot:top>
@@ -30,11 +33,12 @@
                         <v-text-field v-model="editedItem.package_name" label="Package Name"></v-text-field>
                       </v-col>
                       <v-col cols="12" sm="6" md="6">
-                        <v-text-field v-model="editedItem.shipping_date" type="date" label="Shipping date">
+                        <v-text-field v-model="editedItem.shipping_date" type="date" :value="today"
+                          label="Shipping date">
                         </v-text-field>
                       </v-col>
                       <v-col cols="12" sm="6" md="6">
-                        <v-text-field v-model="editedItem.arrival_date" type="date" label="Arrival date">
+                        <v-text-field v-model="editedItem.arrival_date" type="date" :value="today" label="Arrival date">
                         </v-text-field>
                       </v-col>
                       <v-col cols="12" sm="6" md="6">
@@ -77,9 +81,15 @@
                 </v-card-actions>
               </v-card>
             </v-dialog>
+            <v-spacer></v-spacer>
+            <div class="mx-5">
+              <v-chip class="mx-2" color="blue" dark label>PD - Pending</v-chip>
+              <v-chip class="mx-2" color="green" dark label>AD - Delivered</v-chip>
+              <v-chip class="mx-2" color="red" dark label>OTW - On the way</v-chip>
+            </div>
           </v-toolbar>
         </template>
-        <template v-slot:[`item.actions`]="{ item }">
+        <template v-slot:[`item.actions`]=" { item }">
           <v-icon small class="mr-2" @click="editItem(item)">
             mdi-pencil
           </v-icon>
@@ -126,11 +136,11 @@ import { mapMutations } from "vuex";
       editedIndex: -1,
       editedItem: {
         package_name: 'Frozen Yogurt',
-        shipping_date: '01/01/2021',
-        arrival_date: '02/05/2022',
+        shipping_date: new Date().toISOString().substr(0, 10),
+        arrival_date: new Date().toISOString().substr(0, 10),
         country_of_origin: 'Spain',
         destination_country: 'Uganda',
-        status: 'pending',
+        status: 'PD',
       },
       defaultItem: {
         package_name: '',
@@ -147,6 +157,9 @@ import { mapMutations } from "vuex";
     formTitle() {
       return this.editedIndex === -1 ? 'New Item' : 'Edit Item'
     },
+    today() {
+      return new Date().toISOString().substr(0, 10);
+    }
   },
 
   watch: {

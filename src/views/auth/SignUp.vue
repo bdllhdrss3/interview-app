@@ -2,7 +2,7 @@
     <div class="d-flex align-center" style="backgroundColor: #848884; width:100%; height: 100%">
         <v-card class="mx-auto mt-5 align-self-center" width="500" height="auto">
             <v-card-title class="justify-center">Sign Up</v-card-title>
-            <v-card-text class="mx-1ssssssssss">
+            <v-card-text class="mx-1">
                 <v-text-field v-model="email" label="Email" type="email" filled densed rounded
                     :rules="[rules.req,rules.email]">
                 </v-text-field>

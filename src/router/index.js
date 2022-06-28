@@ -26,5 +26,10 @@ export default new VueRouter({
             name: "signup",
             component: () => import("../views/auth/SignUp.vue")
         },
+        {
+            path: "*",
+            name: "404",
+            component: () => import("../views/NotFound.vue")
+        }
     ]
 })
